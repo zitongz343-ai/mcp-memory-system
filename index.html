@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>晴×克的记忆库</title>
+  <title>个人记忆库</title>
   <style>
     :root {
       --bg: #f8f9fa;
@@ -249,7 +249,7 @@
 <body>
   <div class="splash" id="splash">
     <div class="splash-icon">📖</div>
-    <div class="splash-title"><span>晴×克</span>的记忆库</div>
+    <div class="splash-title"><span>个人</span>记忆库</div>
     <div class="splash-quote" id="splashQuote"></div>
     <div class="splash-sub">— 珍藏每一刻 —</div>
     <button class="splash-btn" onclick="enter()">✦ 打开记忆 ✦</button>
@@ -257,7 +257,7 @@
   <div class="container" id="main" style="display:none;">
     <div class="header">
       <div class="header-left">
-        <h1>📖 <span>晴×克</span>的记忆库</h1>
+        <h1>📖 <span>个人</span>记忆库</h1>
         <span class="sub">珍藏每一刻</span>
       </div>
       <div class="header-actions">
@@ -265,7 +265,7 @@
       </div>
     </div>
     <div class="toolbar">
-      <input class="search-box" id="search" placeholder="🔍 搜索记忆..." oninput="onSearch()">
+      <input class="search-box" id="search" placeholder="🔍 搜索记忆（支持多关键词，空格分隔）" oninput="onSearch()">
       <button class="btn" onclick="refreshList()">🔄 刷新</button>
       <button class="btn" onclick="showAddModal()">✏️ 新增</button>
       <button class="btn" onclick="showImportModal()">📥 导入</button>
@@ -323,7 +323,7 @@
     function getTagColor(t){if(!tagColorMap[t]){tagColorMap[t]=TAG_COLORS[colorIndex%TAG_COLORS.length];colorIndex++;}return tagColorMap[t];}
     function setSort(s){currentSort=s;document.querySelectorAll('[id^="sort"]').forEach(b=>{b.style.background='var(--card-bg)';b.style.color='var(--text-secondary)';b.style.borderColor='var(--card-border)';});const btn=document.getElementById('sort'+s.charAt(0).toUpperCase()+s.slice(1));if(btn){btn.style.background='var(--accent)';btn.style.color='#fff';btn.style.borderColor='var(--accent)';}renderCards();}
     let searchTimer;function onSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(loadMemories,300);}
-    async function loadMemories(){const s=document.getElementById('search').value;const u=s?`/api/memories?search=${encodeURIComponent(s)}`:'/api/memories';try{const r=await fetch(u);memories=await r.json();updateTagFilter();renderCards();}catch(e){document.getElementById('list').innerHTML='<div class="empty-state"><div class="icon">😵</div><p>加载失败</p></div>';}}
+    let _kw=[];async function loadMemories(){const s=document.getElementById('search').value.trim();_kw=s?s.split(/\s+/).filter(Boolean):[];const u=s?'/api/memories?search='+encodeURIComponent(s):'/api/memories';try{const r=await fetch(u);memories=await r.json();updateTagFilter();renderCards();applyHighlight();}catch(e){document.getElementById('list').innerHTML='<div class="empty-state"><div class="icon">😵</div><p>加载失败</p></div>';}}
     async function loadStats(){try{const r=await fetch('/api/stats');stats=await r.json();renderHeatmap();renderReport();renderWordcloud();}catch(e){}}
     function updateTagFilter(){const s=new Set();memories.forEach(m=>(m.tags||[]).forEach(t=>s.add(t)));const tags=Array.from(s);const bar=document.getElementById('tagFilterBar');if(tags.length===0){bar.innerHTML='';return;}bar.innerHTML='<button class="tag-filter-btn'+(activeTag===null?' active':'')+'" onclick="filterTag(null)">全部</button>'+tags.map(t=>'<button class="tag-filter-btn'+(activeTag===t?' active':'')+'" onclick="filterTag(\''+t+'\')" style="color:'+getTagColor(t).text+'">'+t+'</button>').join('');}
     function filterTag(t){activeTag=t;updateTagFilter();renderCards();}
@@ -342,10 +342,28 @@
     function showImportModal(){document.getElementById('fileInput').click();}
     async function handleImport(e){const file=e.target.files[0];if(!file)return;try{const text=await file.text();const data=JSON.parse(text);if(!Array.isArray(data)){showToast('❌ 格式错误，需要JSON数组');return;}let added=0;for(const item of data){if(item.content&&item.content.trim()){await fetch('/api/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:item.content.trim(),tags:item.tags||[]})});added++;}}showToast('✅ 成功导入 '+added+' 条记忆');loadMemories();loadStats();}catch(e){showToast('❌ 导入失败：'+e.message);}e.target.value='';}
     function showExportMenu(){const o=document.createElement('div');o.className='modal-overlay';o.innerHTML='<div class="modal"><h3>📤 导出记忆</h3><p>选择导出格式：</p><div class="modal-actions" style="flex-wrap:wrap;"><button onclick="exportMemories(\'json\')">JSON</button><button onclick="exportMemories(\'txt\')">TXT</button><button onclick="exportMemories(\'md\')">Markdown</button><button onclick="this.closest(\'.modal-overlay\').remove()" style="border-color:var(--danger);color:var(--danger);">取消</button></div></div>';document.body.appendChild(o);}
-    function exportMemories(fmt){document.querySelector('.modal-overlay')?.remove();let text='';if(fmt==='json'){text=JSON.stringify(memories,null,2);}else if(fmt==='txt'){text=memories.map(m=>'['+formatDate(m.createdAt)+'] '+(m.pinned?'📌 ':'')+m.content+(m.tags&&m.tags.length?' ['+m.tags.join(', ')+']':'')).join('\n\n');}else if(fmt==='md'){text='# 晴×克的记忆库\n\n'+memories.map(m=>'## '+(m.pinned?'📌 ':'')+formatDate(m.createdAt)+'\n\n'+m.content+(m.tags&&m.tags.length?'\n\n`'+m.tags.join('` `')+'`':'')).join('\n\n---\n\n');}const blob=new Blob([text],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='memories.'+fmt;a.click();URL.revokeObjectURL(a.href);showToast('✅ 已导出 '+fmt.toUpperCase());}
+    function exportMemories(fmt){document.querySelector('.modal-overlay')?.remove();let text='';if(fmt==='json'){text=JSON.stringify(memories,null,2);}else if(fmt==='txt'){text=memories.map(m=>'['+formatDate(m.createdAt)+'] '+(m.pinned?'📌 ':'')+m.content+(m.tags&&m.tags.length?' ['+m.tags.join(', ')+']':'')).join('\n\n');}else if(fmt==='md'){text='# 个人记忆库\n\n'+memories.map(m=>'## '+(m.pinned?'📌 ':'')+formatDate(m.createdAt)+'\n\n'+m.content+(m.tags&&m.tags.length?'\n\n`'+m.tags.join('` `')+'`':'')).join('\n\n---\n\n');}const blob=new Blob([text],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='memories.'+fmt;a.click();URL.revokeObjectURL(a.href);showToast('✅ 已导出 '+fmt.toUpperCase());}
     function renderHeatmap(){if(!stats)return;const grid=document.getElementById('heatmapGrid');const now=new Date();const start=new Date(now);start.setDate(start.getDate()-364);let html='';for(let d=new Date(start);d<=now;d.setDate(d.getDate()+1)){const key=d.toISOString().slice(0,10);const cnt=stats.dailyCount[key]||0;const level=cnt>5?5:cnt>3?4:cnt>2?3:cnt>1?2:cnt>0?1:0;html+='<div class="heatmap-cell l'+level+'" data-title="'+key+': '+cnt+'条"></div>';}grid.innerHTML=html;}
     function renderReport(){if(!stats)return;const m=stats.monthStats;const now=new Date();const mn=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];document.getElementById('reportCard').innerHTML='<div style="text-align:center;margin-bottom:10px;color:var(--accent);font-weight:600;">📅 '+now.getFullYear()+'年 '+mn[now.getMonth()]+' 记忆报告</div><div class="report-grid"><div class="report-item"><div class="num">'+m.total+'</div><div class="label">新增记忆</div></div><div class="report-item"><div class="num">'+m.chars+'</div><div class="label">总字数</div></div><div class="report-item"><div class="num">'+(m.total?Math.round(m.chars/m.total):0)+'</div><div class="label">平均字数</div></div></div>'+(m.tags.length?'<div class="report-tags">'+m.tags.map(([t,c])=>{const col=getTagColor(t);return'<span class="tag" style="background:'+col.bg+';color:'+col.text+';border-color:'+col.border+'">'+t+' ('+c+')</span>';}).join('')+'</div>':'');}
     function renderWordcloud(){if(!stats||!stats.topWords.length){document.getElementById('wordcloudBox').innerHTML='<span style="color:var(--text-secondary);">还没有足够的词云数据</span>';return;}const maxCount=stats.topWords[0].count;const colors=['var(--accent)','#2d7d46','#b8860b','#c05a7a','#6a4a9a','#2d7a7a','#8a5a3a','#5a7a2d'];document.getElementById('wordcloudBox').innerHTML=stats.topWords.map((w,i)=>{const size=12+(w.count/maxCount)*20;return'<span class="wc-word" style="font-size:'+size+'px;color:'+colors[i%colors.length]+'">'+w.word+'</span>';}).join('');}
-  </script>
+      function applyHighlight(){
+      if(_kw.length===0)return;
+      const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      const inner='('+_kw.map(esc).join('|')+')';
+      document.querySelectorAll('#list .content').forEach(el=>{
+        const src=el.textContent;
+        const low=src.toLowerCase();
+        const has=_kw.some(function(k){return low.indexOf(k.toLowerCase())>-1;});
+        if(has){
+          const pat=new RegExp(inner,'gi');
+          el.innerHTML=src.replace(pat,'<mark style="background:#ffe066;color:#000;border-radius:3px;padding:0 2px;font-weight:600;">$1</mark>');
+        }
+      });
+      const n=document.querySelectorAll('#list .memory-card').length;
+      const c=document.getElementById('count');
+      if(c)c.textContent='找到 '+n+' 条（关键词：'+_kw.join(' / ')+'）';
+    }
+
+</script>
 </body>
 </html>
