@@ -11,7 +11,15 @@ const MEMORY_FILE = path.join(__dirname, "memories.json");
 const TMP_FILE = MEMORY_FILE + ".tmp";
 
 app.use(express.json({ limit: "5mb" }));
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res, filepath) => {
+    if (filepath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  },
+}));
 
 function readMemories() {
   try {
