@@ -1,0 +1,37 @@
+[
+  {
+    "id": "a1f3c2d4-5e6b-4a7c-8d9e-0f1a2b3c4d5e",
+    "content": "2026-03-15 用户提到最近在学 Python 的数据分析，用 pandas 处理了一份销售数据，感觉比 Excel 方便很多。晚上准备看一节 numpy 的教程。",
+    "tags": ["学习", "Python", "日常"],
+    "pinned": false,
+    "createdAt": "2026-03-15T13:20:00.000Z"
+  },
+  {
+    "id": "b2e4d3c5-6f7a-4b8c-9d0e-1a2b3c4d5e6f",
+    "content": "用户偏好：喜欢简洁直接的回复，不要过多寒暄；技术问题希望先给结论再给理由；不喜欢使用 emoji。",
+    "tags": ["用户信息", "偏好设定"],
+    "pinned": true,
+    "createdAt": "2026-03-16T09:05:00.000Z"
+  },
+  {
+    "id": "c3f5e4d6-7a8b-4c9d-0e1f-2a3b4c5d6e7f",
+    "content": "2026-03-18 讨论了 RAG 的检索策略。用户对「纯向量检索在专有名词上表现不佳」这一点很感兴趣，我们对比了 BM25 和向量检索的适用场景，决定后续尝试混合召回方案。",
+    "tags": ["技术", "RAG", "检索"],
+    "pinned": false,
+    "createdAt": "2026-03-18T15:42:00.000Z"
+  },
+  {
+    "id": "d4a6f5e7-8b9c-4d0e-1f2a-3b4c5d6e7f8a",
+    "content": "2026-03-20 用户完成了第一个开源项目的 README 撰写，把项目部署到了云服务器，配置了 pm2 做进程守护和开机自启。",
+    "tags": ["技术", "部署", "里程碑"],
+    "pinned": false,
+    "createdAt": "2026-03-20T11:30:00.000Z"
+  },
+  {
+    "id": "e5b7a6f8-9c0d-4e1f-2a3b-4c5d6e7f8a9b",
+    "content": "2026-03-22 用户在学习 MCP 协议，了解了 tools/list 与 tools/call 的 JSON-RPC 交互方式，准备给自己的服务加上工具能力。",
+    "tags": ["学习", "MCP", "技术"],
+    "pinned": false,
+    "createdAt": "2026-03-22T20:15:00.000Z"
+  }
+]

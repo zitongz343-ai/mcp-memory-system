@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>晴×克的记忆库</title>
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --card-border: #e9ecef;
+      --text: #2d3436;
+      --text-secondary: #b2bec3;
+      --accent: #74b9ff;
+      --accent-hover: #5fa8f0;
+      --accent-bg: #f0f8ff;
+      --input-bg: #ffffff;
+      --input-border: #e9ecef;
+      --danger: #ff7675;
+      --danger-bg: #fff5f5;
+      --splash-bg: #f8f9fa;
+      --modal-overlay: rgba(0,0,0,0.3);
+      --toast-bg: #2d3436;
+      --toast-text: #ffffff;
+      --heatmap-empty: #f1f3f5;
+      --scrollbar-track: #f1f3f5;
+      --scrollbar-thumb: #ced4da;
+    }
+    [data-theme="dark"] {
+      --bg: #1e1e22;
+      --card-bg: #2a2a30;
+      --card-border: #3a3a44;
+      --text: #e0e0e0;
+      --text-secondary: #8a8a96;
+      --accent: #5fa8f0;
+      --accent-hover: #74b9ff;
+      --accent-bg: #2a3040;
+      --input-bg: #2a2a30;
+      --input-border: #3a3a44;
+      --danger: #ff7675;
+      --danger-bg: #3a2020;
+      --splash-bg: #1e1e22;
+      --modal-overlay: rgba(0,0,0,0.5);
+      --toast-bg: #e0e0e0;
+      --toast-text: #1e1e22;
+      --heatmap-empty: #2a2a30;
+      --scrollbar-track: #2a2a30;
+      --scrollbar-thumb: #4a4a54;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+    .splash {
+      position: fixed; inset: 0;
+      background: var(--splash-bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 999;
+      transition: opacity 0.6s ease;
+    }
+    .splash.hide { opacity: 0; pointer-events: none; }
+    .splash-icon { font-size: 72px; margin-bottom: 12px; animation: float 2.5s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+    .splash-title { font-size: 32px; font-weight: 700; color: var(--text); letter-spacing: 4px; margin-bottom: 4px; }
+    .splash-title span { color: var(--accent); }
+    .splash-quote { font-size: 14px; color: var(--text-secondary); letter-spacing: 2px; font-style: italic; margin-bottom: 6px; }
+    .splash-sub { font-size: 12px; color: var(--text-secondary); letter-spacing: 3px; margin-bottom: 32px; opacity: 0.5; }
+    .splash-btn {
+      padding: 12px 48px; font-size: 15px; font-weight: 500;
+      font-family: inherit;
+      background: var(--card-bg); border: 2px solid var(--accent);
+      border-radius: 12px; color: var(--accent);
+      cursor: pointer; transition: all 0.3s; letter-spacing: 2px;
+    }
+    .splash-btn:hover { background: var(--accent); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(116,185,255,0.3); }
+
+    .container { max-width: 840px; margin: 0 auto; padding: 16px 16px 60px; animation: fadeIn 0.5s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 0; margin-bottom: 16px;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-left h1 { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: 2px; }
+    .header-left h1 span { color: var(--accent); }
+    .header-left .sub { font-size: 12px; color: var(--text-secondary); letter-spacing: 1px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+
+    .theme-toggle {
+      width: 36px; height: 36px; border-radius: 10px;
+      border: 1.5px solid var(--card-border);
+      background: var(--card-bg); cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .theme-toggle:hover { border-color: var(--accent); background: var(--accent-bg); }
+
+    .toolbar { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+    .search-box {
+      flex: 1; min-width: 160px; padding: 10px 14px; font-size: 13px;
+      font-family: inherit;
+      border: 1.5px solid var(--input-border); border-radius: 10px;
+      background: var(--input-bg); color: var(--text); outline: none;
+      transition: all 0.2s;
+    }
+    .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(116,185,255,0.1); }
+    .search-box::placeholder { color: var(--text-secondary); }
+
+    .btn {
+      padding: 8px 16px; font-size: 12px; font-weight: 500;
+      font-family: inherit;
+      border: 1.5px solid var(--card-border); border-radius: 10px;
+      background: var(--card-bg); color: var(--text-secondary);
+      cursor: pointer; transition: all 0.2s;
+      white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(116,185,255,0.1); }
+    .btn-danger { border-color: var(--danger); color: var(--danger); }
+    .btn-danger:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
+    .btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 8px; }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+
+    .sort-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px; flex-wrap: wrap; gap: 4px;
+    }
+    .sort-bar .label { font-size: 11px; color: var(--text-secondary); margin-right: 4px; }
+    .stats-text { font-size: 12px; color: var(--text-secondary); }
+    .stats-text strong { color: var(--accent); font-weight: 600; }
+
+    .tag-filter-bar { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+    .tag-filter-btn {
+      padding: 3px 12px; font-size: 11px; font-family: inherit;
+      border: 1px solid var(--card-border); border-radius: 20px;
+      background: var(--card-bg); color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+    }
+    .tag-filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .tag-filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .memory-card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 14px; padding: 16px;
+      transition: all 0.25s; position: relative;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+    }
+    .memory-card:hover { border-color: var(--accent); box-shadow: 0 8px 24px rgba(116,185,255,0.08); transform: translateY(-2px); }
+    .memory-card.pinned { border-left: 4px solid var(--accent); background: var(--accent-bg); }
+    .memory-card .pin-badge { position: absolute; top: 8px; right: 10px; font-size: 12px; opacity: 0.3; }
+    .memory-card .content { font-size: 14px; line-height: 1.7; color: var(--text); margin-bottom: 10px; white-space: pre-wrap; word-break: break-word; }
+    .memory-card .content textarea {
+      width: 100%; padding: 8px 10px; font-size: 13px; font-family: inherit;
+      border: 1.5px solid var(--accent); border-radius: 8px;
+      background: var(--input-bg); color: var(--text); resize: vertical; min-height: 50px; outline: none;
+    }
+    .memory-card .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
+    .memory-card .tag {
+      padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 500;
+      border: 1px solid transparent; cursor: pointer; transition: all 0.2s;
+    }
+    .memory-card .tag:hover { transform: scale(1.05); }
+    .memory-card .meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-secondary); padding-top: 8px; border-top: 1px solid var(--card-border); }
+    .card-actions { display: flex; gap: 4px; }
+    .card-actions button {
+      padding: 3px 8px; font-size: 11px; font-family: inherit;
+      border: 1px solid var(--card-border); border-radius: 6px;
+      background: var(--card-bg); color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+    }
+    .card-actions button:hover { border-color: var(--accent); color: var(--accent); }
+    .card-actions .del-btn { border-color: transparent; color: var(--danger); }
+    .card-actions .del-btn:hover { background: var(--danger-bg); border-color: var(--danger); }
+    .empty-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+    .empty-state .icon { font-size: 40px; margin-bottom: 8px; opacity: 0.4; }
+
+    .section { margin-bottom: 20px; }
+    .section-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .heatmap-wrapper { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; }
+    .heatmap-grid { display: grid; grid-template-columns: repeat(53, 1fr); gap: 2px; }
+    .heatmap-cell { width: 100%; aspect-ratio: 1; border-radius: 3px; background: var(--heatmap-empty); position: relative; transition: all 0.2s; }
+    .heatmap-cell:hover { transform: scale(1.3); z-index: 5; }
+    .heatmap-cell.l1 { background: #e3f0ff; }
+    .heatmap-cell.l2 { background: #93c5ff; }
+    .heatmap-cell.l3 { background: #5fa8f0; }
+    .heatmap-cell.l4 { background: #3182ce; }
+    .heatmap-cell.l5 { background: #1a56a0; }
+    .heatmap-cell:hover::after {
+      content: attr(data-title); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+      background: var(--toast-bg); color: var(--toast-text); padding: 3px 8px; border-radius: 6px;
+      font-size: 10px; white-space: nowrap; z-index: 10;
+    }
+    .heatmap-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-secondary); margin-top: 6px; align-items: center; }
+    .heatmap-legend { display: flex; gap: 3px; align-items: center; }
+    .heatmap-legend span { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+
+    .report-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 18px; }
+    .report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; }
+    .report-item { text-align: center; }
+    .report-item .num { font-size: 24px; font-weight: 700; color: var(--accent); }
+    .report-item .label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .report-tags { margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+
+    .wordcloud-box { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; min-height: 100px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+    .wordcloud-box .wc-word { display: inline-block; cursor: default; transition: all 0.3s; padding: 2px 4px; border-radius: 4px; }
+    .wordcloud-box .wc-word:hover { transform: scale(1.15); }
+
+    .toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: var(--toast-bg); color: var(--toast-text); padding: 10px 22px;
+      border-radius: 10px; font-size: 13px; font-family: inherit;
+      z-index: 100; animation: toastIn 0.3s ease;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+    .modal-overlay { position: fixed; inset: 0; background: var(--modal-overlay); display: flex; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(2px); }
+    .modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; max-width: 380px; width: 90%; box-shadow: 0 16px 48px rgba(0,0,0,0.08); animation: modalIn 0.25s ease; }
+    @keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+    .modal h3 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
+    .modal p { color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6; font-size: 13px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-actions button { padding: 8px 18px; font-size: 13px; font-family: inherit; font-weight: 500; border: 1.5px solid var(--card-border); border-radius: 10px; background: var(--card-bg); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+    .modal-actions button:hover { border-color: var(--accent); color: var(--accent); }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 500; }
+    .form-group input, .form-group textarea { width: 100%; padding: 8px 12px; font-size: 13px; font-family: inherit; border: 1.5px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text); outline: none; transition: all 0.2s; }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(116,185,255,0.1); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    #fileInput { display: none; }
+
+    @media (max-width: 600px) {
+      .container { padding: 12px; }
+      .card-grid { grid-template-columns: 1fr; }
+      .heatmap-grid { grid-template-columns: repeat(26, 1fr); }
+      .splash-title { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="splash" id="splash">
+    <div class="splash-icon">📖</div>
+    <div class="splash-title"><span>晴×克</span>的记忆库</div>
+    <div class="splash-quote" id="splashQuote"></div>
+    <div class="splash-sub">— 珍藏每一刻 —</div>
+    <button class="splash-btn" onclick="enter()">✦ 打开记忆 ✦</button>
+  </div>
+  <div class="container" id="main" style="display:none;">
+    <div class="header">
+      <div class="header-left">
+        <h1>📖 <span>晴×克</span>的记忆库</h1>
+        <span class="sub">珍藏每一刻</span>
+      </div>
+      <div class="header-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+      </div>
+    </div>
+    <div class="toolbar">
+      <input class="search-box" id="search" placeholder="🔍 搜索记忆..." oninput="onSearch()">
+      <button class="btn" onclick="refreshList()">🔄 刷新</button>
+      <button class="btn" onclick="showAddModal()">✏️ 新增</button>
+      <button class="btn" onclick="showImportModal()">📥 导入</button>
+      <button class="btn" onclick="showExportMenu()">📤 导出</button>
+      <button class="btn btn-danger" onclick="confirmClear()">🗑️ 清空</button>
+    </div>
+    <div class="sort-bar">
+      <div>
+        <span class="label">排序：</span>
+        <button class="btn btn-sm" id="sortNewest" onclick="setSort('newest')" style="background:var(--accent);color:#fff;border-color:var(--accent);">最新</button>
+        <button class="btn btn-sm" id="sortOldest" onclick="setSort('oldest')">最旧</button>
+        <button class="btn btn-sm" id="sortPinned" onclick="setSort('pinned')">置顶优先</button>
+      </div>
+      <span class="stats-text"><strong id="count">加载中...</strong> <span id="wordCount"></span></span>
+    </div>
+    <div class="tag-filter-bar" id="tagFilterBar"></div>
+    <div class="section">
+      <div class="section-title">📊 记忆热力图</div>
+      <div class="heatmap-wrapper">
+        <div class="heatmap-grid" id="heatmapGrid"></div>
+        <div class="heatmap-labels">
+          <span>少</span>
+          <div class="heatmap-legend">
+            <span style="background:#e3f0ff;"></span>
+            <span style="background:#93c5ff;"></span>
+            <span style="background:#5fa8f0;"></span>
+            <span style="background:#3182ce;"></span>
+            <span style="background:#1a56a0;"></span>
+          </div>
+          <span>多</span>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">📈 月度报告</div>
+      <div class="report-card" id="reportCard">加载中...</div>
+    </div>
+    <div class="section">
+      <div class="section-title">☁️ 词云</div>
+      <div class="wordcloud-box" id="wordcloudBox">加载中...</div>
+    </div>
+    <div class="card-grid" id="list">
+      <div class="empty-state"><div class="icon">⏳</div><p>加载中...</p></div>
+    </div>
+  </div>
+  <input type="file" id="fileInput" accept=".json" onchange="handleImport(event)">
+  <script>
+    const QUOTES = ["记忆是时间的礼物 🎁","每一刻都值得珍藏 ✨","把美好装进口袋 📦","时光不语，记忆长存 🕰️","记录生活的小确幸 🌸","让回忆有处可栖 🏠","岁月留痕，温暖如初 ☀️","你的故事，值得被记住 📖","念念不忘，必有回响 🔔","昨日之日不可留 🍂","把今天写成明天的诗 📝","温柔地记住这个世界 🌏"];
+    const TAG_COLORS = [{bg:'#e3f0ff',text:'#3182ce',border:'#93c5ff'},{bg:'#e6f9ed',text:'#2d7d46',border:'#a8e6b8'},{bg:'#fef3e2',text:'#b8860b',border:'#f0d9a0'},{bg:'#fce8f0',text:'#c05a7a',border:'#e8b0c8'},{bg:'#f0ecf8',text:'#6a4a9a',border:'#c8b8e0'},{bg:'#e8f8f8',text:'#2d7a7a',border:'#a8d8d8'},{bg:'#fcf0e8',text:'#8a5a3a',border:'#d8c0a8'},{bg:'#f0f8e8',text:'#5a7a2d',border:'#b8d8a0'},{bg:'#fce8e8',text:'#c06060',border:'#e8b0b0'},{bg:'#e8f0fc',text:'#3a6a9a',border:'#b0c8e8'}];
+    let memories=[],stats=null,currentSort='newest',activeTag=null,tagColorMap={},colorIndex=0;
+    document.getElementById('splashQuote').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+    if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-theme','dark');document.getElementById('themeBtn').textContent='☀️';}
+    function enter(){document.getElementById('splash').classList.add('hide');document.getElementById('main').style.display='block';loadMemories();loadStats();}
+    function toggleTheme(){const h=document.documentElement;const n=h.getAttribute('data-theme')==='dark'?'light':'dark';h.setAttribute('data-theme',n);document.getElementById('themeBtn').textContent=n==='dark'?'☀️':'🌙';showToast(n==='dark'?'🌙 夜间模式':'☀️ 日间模式');}
+    function getTagColor(t){if(!tagColorMap[t]){tagColorMap[t]=TAG_COLORS[colorIndex%TAG_COLORS.length];colorIndex++;}return tagColorMap[t];}
+    function setSort(s){currentSort=s;document.querySelectorAll('[id^="sort"]').forEach(b=>{b.style.background='var(--card-bg)';b.style.color='var(--text-secondary)';b.style.borderColor='var(--card-border)';});const btn=document.getElementById('sort'+s.charAt(0).toUpperCase()+s.slice(1));if(btn){btn.style.background='var(--accent)';btn.style.color='#fff';btn.style.borderColor='var(--accent)';}renderCards();}
+    let searchTimer;function onSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(loadMemories,300);}
+    async function loadMemories(){const s=document.getElementById('search').value;const u=s?`/api/memories?search=${encodeURIComponent(s)}`:'/api/memories';try{const r=await fetch(u);memories=await r.json();updateTagFilter();renderCards();}catch(e){document.getElementById('list').innerHTML='<div class="empty-state"><div class="icon">😵</div><p>加载失败</p></div>';}}
+    async function loadStats(){try{const r=await fetch('/api/stats');stats=await r.json();renderHeatmap();renderReport();renderWordcloud();}catch(e){}}
+    function updateTagFilter(){const s=new Set();memories.forEach(m=>(m.tags||[]).forEach(t=>s.add(t)));const tags=Array.from(s);const bar=document.getElementById('tagFilterBar');if(tags.length===0){bar.innerHTML='';return;}bar.innerHTML='<button class="tag-filter-btn'+(activeTag===null?' active':'')+'" onclick="filterTag(null)">全部</button>'+tags.map(t=>'<button class="tag-filter-btn'+(activeTag===t?' active':'')+'" onclick="filterTag(\''+t+'\')" style="color:'+getTagColor(t).text+'">'+t+'</button>').join('');}
+    function filterTag(t){activeTag=t;updateTagFilter();renderCards();}
+    function renderCards(){const totalChars=memories.reduce((s,m)=>s+(m.content||'').length,0);document.getElementById('count').textContent='共 '+memories.length+' 条记忆';document.getElementById('wordCount').textContent=' · '+totalChars+' 字';let filtered=activeTag?memories.filter(m=>(m.tags||[]).includes(activeTag)):memories;if(currentSort==='newest')filtered.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));else if(currentSort==='oldest')filtered.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));else if(currentSort==='pinned')filtered.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));const list=document.getElementById('list');if(filtered.length===0){list.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>还没有记忆 ✨</p></div>';return;}list.innerHTML=filtered.map(m=>'<div class="memory-card'+(m.pinned?' pinned':'')+'">'+(m.pinned?'<div class="pin-badge">📌</div>':'')+'<div class="content" ondblclick="inlineEdit(\''+m.id+'\')" id="content-'+m.id+'">'+escapeHtml(m.content)+'</div>'+(m.tags&&m.tags.length?'<div class="tags">'+m.tags.map(t=>{const c=getTagColor(t);return'<span class="tag" style="background:'+c.bg+';color:'+c.text+';border-color:'+c.border+'" onclick="filterTag(\''+t+'\')">'+t+'</span>';}).join('')+'</div>':'')+'<div class="meta"><span>📅 '+formatDate(m.createdAt)+'</span><div class="card-actions"><button onclick="togglePin(\''+m.id+'\')">'+(m.pinned?'📌':'📍')+'</button><button class="del-btn" onclick="deleteMemory(\''+m.id+'\')">🗑️</button></div></div></div>').join('');}
+    function inlineEdit(id){const el=document.getElementById('content-'+id);const m=memories.find(x=>x.id===id);if(!m)return;const txt=document.createElement('textarea');txt.value=m.content;txt.onblur=async function(){const val=txt.value.trim();if(val&&val!==m.content){try{await fetch('/api/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,content:val})});showToast('✅ 已更新');loadMemories();loadStats();}catch(e){showToast('❌ 更新失败');}}else{el.textContent=m.content;}};txt.onkeydown=function(e){if(e.key==='Escape'){el.textContent=m.content;}if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();txt.blur();}};el.textContent='';el.appendChild(txt);txt.focus();}
+    function formatDate(d){if(!d)return'未知';return new Date(d).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+    function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+    function showToast(m){const o=document.querySelector('.toast');if(o)o.remove();const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2000);}
+    async function deleteMemory(id){if(!confirm('确定删除？'))return;try{const r=await fetch('/api/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const d=await r.json();showToast(d.success?'✅ 已删除':'❌ 失败');loadMemories();loadStats();}catch(e){showToast('❌ 失败');}}
+    async function togglePin(id){const m=memories.find(x=>x.id===id);if(!m)return;try{const r=await fetch('/api/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,pinned:!m.pinned})});const d=await r.json();showToast(d.success?(m.pinned?'已取消置顶':'✅ 已置顶'):'❌ 失败');loadMemories();}catch(e){showToast('❌ 失败');}}
+    function confirmClear(){const o=document.createElement('div');o.className='modal-overlay';o.innerHTML='<div class="modal"><h3>⚠️ 确认清空</h3><p>确定要删除 <strong>所有</strong> 记忆吗？此操作不可撤销！</p><div class="modal-actions"><button onclick="this.closest(\'.modal-overlay\').remove()">取消</button><button onclick="clearAllMemories(this)" style="background:var(--danger-bg);border-color:var(--danger);color:var(--danger);">确定清空</button></div></div>';document.body.appendChild(o);}
+    async function clearAllMemories(btn){btn.textContent='清空中...';btn.disabled=true;try{const r=await fetch('/api/clear',{method:'POST'});const d=await r.json();showToast(d.success?'✅ 已清空':'❌ 失败');document.querySelector('.modal-overlay')?.remove();loadMemories();loadStats();}catch(e){showToast('❌ 失败');}}
+    function refreshList(){loadMemories();loadStats();showToast('🔄 已刷新');}
+    function showAddModal(){const o=document.createElement('div');o.className='modal-overlay';o.innerHTML='<div class="modal"><h3>✏️ 新增记忆</h3><div class="form-group"><label>内容</label><textarea id="newContent" rows="3"></textarea></div><div class="form-group"><label>标签（逗号分隔）</label><input id="newTags" placeholder="例如：日常, 心情"></div><div class="modal-actions"><button onclick="this.closest(\'.modal-overlay\').remove()">取消</button><button onclick="submitNewMemory()" class="btn-primary" style="background:var(--accentsubmitNewMemory()" class="btn-primary" style="background:var(--accent);color:#fff;border-color:var(--accent);">保存</button></div></div>';document.body.appendChild(o);setTimeout(()=>document.getElementById('newContent').focus(),100);}
+    async function submitNewMemory(){const c=document.getElementById('newContent').value.trim();if(!c){showToast('❌ 内容不能为空');return;}const tags=document.getElementById('newTags').value.split(/[,，]/).map(t=>t.trim()).filter(Boolean);try{const r=await fetch('/api/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:c,tags})});const d=await r.json();if(d.success){showToast('✅ 已添加');document.querySelector('.modal-overlay')?.remove();loadMemories();loadStats();}else{showToast('❌ '+d.error);}}catch(e){showToast('❌ 添加失败');}}
+    function showImportModal(){document.getElementById('fileInput').click();}
+    async function handleImport(e){const file=e.target.files[0];if(!file)return;try{const text=await file.text();const data=JSON.parse(text);if(!Array.isArray(data)){showToast('❌ 格式错误，需要JSON数组');return;}let added=0;for(const item of data){if(item.content&&item.content.trim()){await fetch('/api/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:item.content.trim(),tags:item.tags||[]})});added++;}}showToast('✅ 成功导入 '+added+' 条记忆');loadMemories();loadStats();}catch(e){showToast('❌ 导入失败：'+e.message);}e.target.value='';}
+    function showExportMenu(){const o=document.createElement('div');o.className='modal-overlay';o.innerHTML='<div class="modal"><h3>📤 导出记忆</h3><p>选择导出格式：</p><div class="modal-actions" style="flex-wrap:wrap;"><button onclick="exportMemories(\'json\')">JSON</button><button onclick="exportMemories(\'txt\')">TXT</button><button onclick="exportMemories(\'md\')">Markdown</button><button onclick="this.closest(\'.modal-overlay\').remove()" style="border-color:var(--danger);color:var(--danger);">取消</button></div></div>';document.body.appendChild(o);}
+    function exportMemories(fmt){document.querySelector('.modal-overlay')?.remove();let text='';if(fmt==='json'){text=JSON.stringify(memories,null,2);}else if(fmt==='txt'){text=memories.map(m=>'['+formatDate(m.createdAt)+'] '+(m.pinned?'📌 ':'')+m.content+(m.tags&&m.tags.length?' ['+m.tags.join(', ')+']':'')).join('\n\n');}else if(fmt==='md'){text='# 晴×克的记忆库\n\n'+memories.map(m=>'## '+(m.pinned?'📌 ':'')+formatDate(m.createdAt)+'\n\n'+m.content+(m.tags&&m.tags.length?'\n\n`'+m.tags.join('` `')+'`':'')).join('\n\n---\n\n');}const blob=new Blob([text],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='memories.'+fmt;a.click();URL.revokeObjectURL(a.href);showToast('✅ 已导出 '+fmt.toUpperCase());}
+    function renderHeatmap(){if(!stats)return;const grid=document.getElementById('heatmapGrid');const now=new Date();const start=new Date(now);start.setDate(start.getDate()-364);let html='';for(let d=new Date(start);d<=now;d.setDate(d.getDate()+1)){const key=d.toISOString().slice(0,10);const cnt=stats.dailyCount[key]||0;const level=cnt>5?5:cnt>3?4:cnt>2?3:cnt>1?2:cnt>0?1:0;html+='<div class="heatmap-cell l'+level+'" data-title="'+key+': '+cnt+'条"></div>';}grid.innerHTML=html;}
+    function renderReport(){if(!stats)return;const m=stats.monthStats;const now=new Date();const mn=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];document.getElementById('reportCard').innerHTML='<div style="text-align:center;margin-bottom:10px;color:var(--accent);font-weight:600;">📅 '+now.getFullYear()+'年 '+mn[now.getMonth()]+' 记忆报告</div><div class="report-grid"><div class="report-item"><div class="num">'+m.total+'</div><div class="label">新增记忆</div></div><div class="report-item"><div class="num">'+m.chars+'</div><div class="label">总字数</div></div><div class="report-item"><div class="num">'+(m.total?Math.round(m.chars/m.total):0)+'</div><div class="label">平均字数</div></div></div>'+(m.tags.length?'<div class="report-tags">'+m.tags.map(([t,c])=>{const col=getTagColor(t);return'<span class="tag" style="background:'+col.bg+';color:'+col.text+';border-color:'+col.border+'">'+t+' ('+c+')</span>';}).join('')+'</div>':'');}
+    function renderWordcloud(){if(!stats||!stats.topWords.length){document.getElementById('wordcloudBox').innerHTML='<span style="color:var(--text-secondary);">还没有足够的词云数据</span>';return;}const maxCount=stats.topWords[0].count;const colors=['var(--accent)','#2d7d46','#b8860b','#c05a7a','#6a4a9a','#2d7a7a','#8a5a3a','#5a7a2d'];document.getElementById('wordcloudBox').innerHTML=stats.topWords.map((w,i)=>{const size=12+(w.count/maxCount)*20;return'<span class="wc-word" style="font-size:'+size+'px;color:'+colors[i%colors.length]+'">'+w.word+'</span>';}).join('');}
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# 依赖
+node_modules/
+
+# 真实记忆数据（隐私，绝不入库）
+memories.json
+memories.json.*
+*.tmp
+
+# 本地备份
+*.bak
+*.bak2
+
+# 环境变量
+.env
+.env.*
+
+# 日志
+*.log
+logs/
+
+# 系统文件
+.DS_Store
+Thumbs.db
