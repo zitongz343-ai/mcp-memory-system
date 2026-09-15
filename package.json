@@ -1,16 +1,22 @@
 {
-  "name": "memory",
-  "version": "1.0.0",
-  "description": "",
-  "main": "memory-server.js",
+  "name": "mcp-memory-system",
+  "version": "2.1.0",
+  "description": "基于 MCP 协议的个人 AI 长期记忆服务：向量语义检索 + 混合召回 + 记忆分层 + 呼吸机制",
+  "type": "module",
+  "main": "mcp-memory-server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:mcp": "node mcp-memory-server.js",
+    "start:web": "node web-server.js",
+    "backfill": "node embed-backfill.mjs"
   },
-  "keywords": [],
+  "keywords": ["mcp", "memory", "rag", "vector-search", "sqlite-vec", "ai"],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
+    "@xenova/transformers": "^2.17.2",
+    "better-sqlite3": "^13.0.3",
     "express": "^5.2.1",
-    "http-proxy-middleware": "^4.2.0"
+    "http-proxy-middleware": "^4.2.0",
+    "sqlite-vec": "^0.1.9"
   }
 }

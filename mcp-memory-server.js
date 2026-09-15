@@ -2,6 +2,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { searchMemory as semanticSearch, breath as breathFn } from "./store.mjs";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -159,6 +160,16 @@ const TOOLS = [
     },
   },
   {
+    name: "memory_breath",
+    description: "呼吸：新对话开始时自动浮现核心记忆——用户画像、当前状态、近期事件。",
+    inputSchema: {
+      type: "object",
+      properties: {
+        recentK: { type: "number", description: "近期事件条数，默认 3" },
+      },
+    },
+  },
+  {
     name: "memory_search_delete",
     description: "按关键词搜索并删除匹配的记忆",
     inputSchema: {
@@ -169,7 +180,7 @@ const TOOLS = [
   },
 ];
 
-app.post("/mcp", (req, res) => {
+app.post("/mcp", async (req, res) => {
   const body = req.body;
   if (!body || !body.method) {
     return res.status(400).json({
@@ -228,22 +239,24 @@ app.post("/mcp", (req, res) => {
     }
 
     if (toolName === "memory_search") {
-      const keywords = parseKeywords(args.query);
       const limit = args.limit || DEFAULT_LIMIT;
-      if (keywords.length === 0) return ok("请输入搜索关键词");
+      if (!args.query || !String(args.query).trim()) return ok("请输入搜索关键词");
+      const results = await semanticSearch(String(args.query), { k: limit });
+      if (!results.length) return ok(`没有找到匹配「${args.query}」的记忆`);
+      return ok(`找到 ${results.length} 条：\n\n` + formatList(results, snippet));
+    }
 
-      const scored = data
-        .map((m) => ({ m, score: scoreMemory(m, keywords) }))
-        .filter((x) => x.score > 0)
-        .sort((a, b) => {
-          if (b.score !== a.score) return b.score - a.score;
-          return String(b.m.createdAt).localeCompare(String(a.m.createdAt));
-        })
-        .slice(0, limit)
-        .map((x) => x.m);
-
-      if (scored.length === 0) return ok(`没有找到匹配「${args.query}」的记忆`);
-      return ok(`找到 ${scored.length} 条：\n\n` + formatList(scored, snippet));
+    if (toolName === "memory_breath") {
+      const recentK = typeof args.recentK === "number" ? args.recentK : 3;
+      const mems = breathFn({ recentK });
+      const label = { fact: "【画像】", state: "【状态】", event: "【近期】" };
+      let out = "";
+      let lastType = "";
+      for (const m of mems) {
+        if (m.type !== lastType) { out += label[m.type] + "\n"; lastType = m.type; }
+        out += "- " + (m.content || "") + "\n";
+      }
+      return ok(out || "（记忆库为空）");
     }
 
     if (toolName === "memory_search_by_tag") {
