@@ -161,7 +161,7 @@ const TOOLS = [
   },
   {
     name: "memory_breath",
-    description: "呼吸：新对话开始时自动浮现核心记忆——用户画像、当前状态、近期事件。",
+    description: "呼吸：新对话开始时自动浮现核心记忆——用户画像、当前状态、近期事件。用于快速回忆\"我记得什么\"，无需关键词。",
     inputSchema: {
       type: "object",
       properties: {

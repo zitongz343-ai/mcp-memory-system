@@ -140,7 +140,7 @@ export async function searchMemory(query, { k = 5 } = {}) {
 }
 
 // ---------- 呼吸 ----------
-const NOISE_TAGS = ['技术', '开发', '日志'];
+const NOISE_TAGS = ['技术', '记忆库', 'GitHub', 'iMessage', 'MCP', '开发', '技术进展', '花园'];
 
 function _tagOverlap(a, b) {
   const ta = new Set((a.tags || []).map(t => t.toLowerCase()));
